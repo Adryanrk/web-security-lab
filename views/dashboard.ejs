@@ -1,0 +1,17 @@
+<%- include('partials/header') %>
+<h1>Min dashboard</h1>
+<p class="muted">Dina sparade items.</p>
+
+<% if (items.length === 0) { %>
+  <div class="card"><p>Du har inga items ännu.</p></div>
+<% } else { %>
+  <div class="list">
+    <% items.forEach(function(item) { %>
+      <a class="card row" href="/items/<%= item.id %>">
+        <span class="row-title"><%= item.title %></span>
+        <span class="muted small"><%= item.created_at %></span>
+      </a>
+    <% }); %>
+  </div>
+<% } %>
+<%- include('partials/footer') %>

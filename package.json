@@ -1,0 +1,20 @@
+{
+  "name": "security-lab-vulnerable-app",
+  "version": "0.1.0",
+  "description": "Avsiktligt sårbar webbapp för eget säkerhetslabb (OWASP Top 10). Endast för lokal, isolerad testning.",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "reset-db": "node db/reset.js"
+  },
+  "keywords": ["security", "owasp", "lab", "pentest", "education"],
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "ejs": "^3.1.10",
+    "express": "^4.21.0",
+    "express-session": "^1.18.0"
+  }
+}

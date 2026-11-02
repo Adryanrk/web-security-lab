@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SecureFolio — Medlemsportal (labb)</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">SecureFolio</a>
+    <nav>
+      <% if (currentUser) { %>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/profile">Profil</a>
+        <span class="who">Inloggad: <%= currentUser.username %></span>
+        <form action="/logout" method="post" class="inline">
+          <button type="submit" class="link-btn">Logga ut</button>
+        </form>
+      <% } else { %>
+        <a href="/login">Logga in</a>
+        <a href="/register">Registrera</a>
+      <% } %>
+    </nav>
+  </header>
+  <main class="container">

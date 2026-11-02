@@ -1,0 +1,16 @@
+<%- include('partials/header') %>
+<div class="card narrow">
+  <h1>Registrera konto</h1>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="post" action="/register">
+    <label>Användarnamn
+      <input type="text" name="username" autocomplete="username" required>
+    </label>
+    <label>Lösenord (minst 6 tecken)
+      <input type="password" name="password" autocomplete="new-password" required>
+    </label>
+    <button type="submit">Skapa konto</button>
+  </form>
+  <p class="muted">Har du redan konto? <a href="/login">Logga in</a></p>
+</div>
+<%- include('partials/footer') %>

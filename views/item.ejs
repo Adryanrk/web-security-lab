@@ -1,0 +1,29 @@
+<%- include('partials/header') %>
+<a class="muted small" href="/dashboard">&larr; Tillbaka</a>
+<div class="card">
+  <h1><%= item.title %></h1>
+  <p><%= item.body %></p>
+  <p class="muted small">Item #<%= item.id %> · ägare-id <%= item.owner_id %></p>
+</div>
+
+<h2>Kommentarer</h2>
+<div class="list">
+  <% if (comments.length === 0) { %>
+    <p class="muted">Inga kommentarer ännu.</p>
+  <% } %>
+  <% comments.forEach(function(c) { %>
+    <div class="card comment">
+      <!-- <%= %> escapar innehållet -> ingen XSS i den säkra versionen -->
+      <p><%= c.content %></p>
+      <p class="muted small"><%= c.username %> · <%= c.created_at %></p>
+    </div>
+  <% }); %>
+</div>
+
+<form method="post" action="/items/<%= item.id %>/comments" class="card">
+  <label>Skriv en kommentar
+    <textarea name="content" rows="2" required></textarea>
+  </label>
+  <button type="submit">Kommentera</button>
+</form>
+<%- include('partials/footer') %>
