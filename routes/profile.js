@@ -1,6 +1,6 @@
 // routes/profile.js
-// Visa och uppdatera egen profil (bio). Bio escapas vid rendering,
-// så den säkra versionen är fri från stored XSS.
+// Show and update your own profile (bio). The bio is escaped at render time,
+// so the secure version is free of stored XSS.
 const express = require('express');
 const db = require('../db/db');
 const requireLogin = require('../middleware/requireLogin');

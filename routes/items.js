@@ -1,11 +1,12 @@
 // routes/items.js
 // ---------------------------------------------------------------------------
-// Dashboard + enskild item-vy med kommentarer.
-// SÄKER baslinje:
-//   - Access-kontroll: /items/:id kontrollerar ÄGANDE innan data visas.
-//     (I sårbara versionen tar vi bort den kontrollen -> IDOR.)
-//   - Kommentarer lagras som text och escapas av EJS vid rendering (<%= %>)
-//     -> ingen stored XSS. (Sårbara versionen renderar oescapat.)
+// Dashboard + single-item view with comments.
+//
+// A01 (Broken Access Control / IDOR) has been remediated: GET /items/:id now
+// verifies ownership before showing the item. Background: docs/findings/02-idor.md
+//
+// Comments are stored as text and escaped by EJS at render time (<%= %>),
+// so there is no stored XSS in this version.
 // ---------------------------------------------------------------------------
 const express = require('express');
 const db = require('../db/db');
@@ -13,7 +14,7 @@ const requireLogin = require('../middleware/requireLogin');
 
 const router = express.Router();
 
-// Dashboard: visar bara den inloggade användarens egna items.
+// Dashboard: shows only the logged-in user's own items.
 router.get('/dashboard', requireLogin, (req, res) => {
   const items = db
     .prepare('SELECT * FROM items WHERE owner_id = ? ORDER BY created_at DESC')
@@ -21,32 +22,18 @@ router.get('/dashboard', requireLogin, (req, res) => {
   res.render('dashboard', { items });
 });
 
-// Enskild item + kommentarer.
+// Single item + comments.
 router.get('/items/:id', requireLogin, (req, res) => {
   const item = db.prepare('SELECT * FROM items WHERE id = ?').get(req.params.id);
 
   if (!item) return res.status(404).render('404');
-  
+
+  // Ownership check — fix for IDOR. Only the owner (or an admin) may view it.
   const isOwner = item.owner_id === req.session.userId;
   const isAdmin = req.session.role === 'admin';
-  
   if (!isOwner && !isAdmin) {
     return res.status(403).render('403');
   }
-
-  // Ägarkontroll — åtgärd mot IDOR. Bakgrund: docs/findings/02-idor.md
-
-  //
-  
-  // 🟢 ÅTGÄRD: återinför ägarkontrollen (det är hela fixen):
-  //
-  //   const isOwner = item.owner_id === req.session.userId;
-  //   const isAdmin = req.session.role === 'admin';
-  //   if (!isOwner && !isAdmin) {
-  //     return res.status(403).render('403');
-  //   }
-  //
-  // =========================================================================
 
   const comments = db
     .prepare(
@@ -59,7 +46,7 @@ router.get('/items/:id', requireLogin, (req, res) => {
   res.render('item', { item, comments });
 });
 
-// Lägg till en kommentar.
+// Add a comment.
 router.post('/items/:id/comments', requireLogin, (req, res) => {
   const item = db.prepare('SELECT id FROM items WHERE id = ?').get(req.params.id);
   if (!item) return res.status(404).render('404');

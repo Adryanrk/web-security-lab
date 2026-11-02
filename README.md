@@ -1,70 +1,78 @@
-# SecureFolio — Security Lab (avsiktligt sårbar medlemsportal)
+# SecureFolio — Web Security Lab
 
-> ⚠️ **Säkerhetsvarning**
-> Den här appen innehåller **med avsikt** inlagda säkerhetshål och är byggd
-> enbart för **lokal, isolerad** inlärning och testning på min egen maskin.
-> Den ska **aldrig** driftsättas, exponeras mot internet, eller köras mot
-> system eller data jag inte äger. Allt pentest-arbete i detta repo sker mot
-> den här appen, lokalt.
+> ⚠️ **Security warning**
+> This application contains **intentional** security vulnerabilities and is built
+> **only** for local, isolated learning and testing on my own machine. It must
+> **never** be deployed, exposed to the internet, or run against systems or data
+> I do not own. All testing in this repo is performed against this app, locally.
 
-Ett hands-on säkerhetslabb där jag bygger en realistisk webbapp, demonstrerar
-hur klassiska sårbarheter (OWASP Top 10) uppstår och utnyttjas, och visar hur
-de åtgärdas — med dokumentation och en pentest-rapport som slutleverans.
+A hands-on web security lab where I build a realistic web application, deliberately
+introduce classic vulnerabilities (OWASP Top 10), exploit them, and then remediate
+them — each one documented with a short write-up, in the style of a real penetration
+test report.
 
-## Varför två versioner
-Appen byggs först **säker** (parametriserade queries, bcrypt, access-kontroll).
-Sårbarheterna läggs sedan in **medvetet**, en i taget, så att den säkra och
-den sårbara varianten kan jämföras rad för rad. Det är själva poängen med
-labbet: att förstå *varför* något är ett hål, inte bara att det är det.
+## Skills demonstrated
+- Identifying and exploiting common web vulnerabilities (OWASP Top 10)
+- Writing secure code and understanding **why** a fix works, not just that it does
+- Both the attacker's and the defender's perspective on each issue
+- Clear security documentation and remediation write-ups
+- Working responsibly in an isolated, legal test environment
 
-## Teknik
-- **Node.js + Express** — backend och routing
-- **SQLite** (Nodes inbyggda `node:sqlite`) — databas i en enda fil, inget byggsteg
-- **EJS** — serverrenderade vyer
-- **bcryptjs** — lösenordshashning
-- **express-session** — sessionshantering
+## Approach
+Each vulnerability is studied through the same loop:
+**secure baseline → introduce the flaw deliberately → exploit it → fix it → verify → document.**
+The app is first built securely (parameterised queries, access control, output
+encoding); each flaw is then introduced one at a time, so the secure and vulnerable
+versions can be compared line by line. The point is to understand the root cause, not
+just reproduce a payload.
 
-## Kör lokalt
+## Tech stack
+- **Node.js + Express** — backend and routing
+- **SQLite** (Node's built-in `node:sqlite`) — single-file database, no build step
+- **EJS** — server-rendered views
+- **express-session** — session handling
+
+## Run locally
 ```bash
 npm install
 npm start
-# öppna http://localhost:3000
+# open http://localhost:3000
 ```
-Testkonton seedas automatiskt:
+Test accounts are seeded automatically:
 
-| Användare | Lösenord     | Roll  |
-|-----------|--------------|-------|
-| alice     | alice123     | user  |
-| bob       | bob123       | user  |
-| admin     | Admin!2026   | admin |
+| User  | Password     | Role  |
+|-------|--------------|-------|
+| alice | alice123     | user  |
+| bob   | bob123       | user  |
+| admin | Admin!2026   | admin |
 
-Nollställ databasen när som helst med `npm run reset-db`.
+Reset the database at any time with `npm run reset-db`.
 
-## Sårbarheter som demonstreras (OWASP Top 10)
-Bockas av allt eftersom varje writeup skrivs i `docs/findings/`.
+## Vulnerabilities covered (OWASP Top 10)
+Checked off as each write-up is completed in `docs/findings/`.
 
-- [x] A01 — Broken Access Control (IDOR på `/items/:id`) → `docs/findings/02-idor.md`
-- [ ] A02 — Cryptographic Failures (svag/ingen lösenordshashning)
-- [x] A03 — Injection (SQL-injection i inloggningen) → `docs/findings/01-sql-injection.md`
-- [ ] A03 — Stored XSS (profil-bio / kommentarer)
-- [ ] A05 — Security Misconfiguration (läckande felmeddelanden)
-- [ ] A07 — Identification & Authentication Failures (ingen rate limiting)
+- [x] A01 — Broken Access Control (IDOR on `/items/:id`) → [write-up](docs/findings/02-idor.md)
+- [ ] A02 — Cryptographic Failures (weak / missing password hashing)
+- [x] A03 — Injection (SQL injection in the login) → [write-up](docs/findings/01-sql-injection.md)
+- [ ] A03 — Stored XSS (profile bio / comments)
+- [ ] A05 — Security Misconfiguration (leaking error messages)
+- [ ] A07 — Identification & Authentication Failures (no rate limiting)
 
-## Struktur
+## Project structure
 ```
 security-lab-vulnerable-app/
 ├── app  (server.js, routes/, views/, db/, middleware/)
 ├── docs/
-│   ├── architecture.md      arkitektur & dataflöde
-│   ├── methodology.md       hur testningen går till
-│   └── findings/            en writeup per sårbarhet
-└── report/                  slutlig pentest-rapport (PDF)
+│   ├── architecture.md      architecture & data flow
+│   ├── methodology.md       how the testing is carried out
+│   └── findings/            one write-up per vulnerability
+└── report/                  final penetration test report (PDF)
 ```
 
-## Metod i korthet
-Recon → identifiera attackytor → utnyttja → verifiera → åtgärda → dokumentera.
-Verktyg: Burp Suite Community / OWASP ZAP som proxy, plus webbläsaren.
+## Methodology
+Recon → identify attack surface → exploit → verify → remediate → document.
+Tooling: Burp Suite Community / OWASP ZAP as an intercepting proxy, plus the browser.
 
-## Ansvarsfriskrivning
-Byggd i utbildningssyfte som en del av mitt portfolio inom cybersäkerhet.
-Använd aldrig teknikerna häri mot system du inte har uttryckligt tillstånd att testa.
+## Disclaimer
+Built for educational purposes as part of my cybersecurity portfolio. Never use any
+of the techniques shown here against systems you do not have explicit permission to test.

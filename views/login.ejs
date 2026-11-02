@@ -1,16 +1,16 @@
 <%- include('partials/header') %>
 <div class="card narrow">
-  <h1>Logga in</h1>
+  <h1>Log in</h1>
   <% if (error) { %><p class="error"><%= error %></p><% } %>
   <form method="post" action="/login">
-    <label>Användarnamn
+    <label>Username
       <input type="text" name="username" autocomplete="username" required>
     </label>
-    <label>Lösenord
+    <label>Password
       <input type="password" name="password" autocomplete="current-password" required>
     </label>
-    <button type="submit">Logga in</button>
+    <button type="submit">Log in</button>
   </form>
-  <p class="muted">Testkonto: <code>alice</code> / <code>alice123</code></p>
+  <p class="muted">Test account: <code>alice</code> / <code>alice123</code></p>
 </div>
 <%- include('partials/footer') %>

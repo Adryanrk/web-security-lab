@@ -1,7 +1,7 @@
 {
   "name": "security-lab-vulnerable-app",
   "version": "0.1.0",
-  "description": "Avsiktligt sårbar webbapp för eget säkerhetslabb (OWASP Top 10). Endast för lokal, isolerad testning.",
+  "description": "Intentionally vulnerable web app for a personal security lab (OWASP Top 10). For local, isolated testing only.",
   "type": "commonjs",
   "main": "server.js",
   "scripts": {

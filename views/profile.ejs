@@ -1,23 +1,23 @@
 <%- include('partials/header') %>
-<h1>Min profil</h1>
-<% if (saved) { %><p class="ok">Profil sparad.</p><% } %>
+<h1>My profile</h1>
+<% if (saved) { %><p class="ok">Profile saved.</p><% } %>
 
 <div class="card">
-  <p><strong>Användarnamn:</strong> <%= user.username %></p>
-  <p><strong>Roll:</strong> <%= user.role %></p>
-  <p><strong>Medlem sedan:</strong> <%= user.created_at %></p>
+  <p><strong>Username:</strong> <%= user.username %></p>
+  <p><strong>Role:</strong> <%= user.role %></p>
+  <p><strong>Member since:</strong> <%= user.created_at %></p>
 </div>
 
 <form method="post" action="/profile" class="card">
-  <label>Bio (visas på din profil)
+  <label>Bio (shown on your profile)
     <textarea name="bio" rows="4"><%= user.bio %></textarea>
   </label>
-  <button type="submit">Spara</button>
+  <button type="submit">Save</button>
 </form>
 
-<h2>Förhandsvisning</h2>
+<h2>Preview</h2>
 <div class="card">
-  <!-- Escapat -> säker version. Sårbara versionen renderar med <%- %> -->
+  <!-- Escaped -> secure version. The vulnerable version renders with <%- %> -->
   <p><%= user.bio %></p>
 </div>
 <%- include('partials/footer') %>

@@ -1,36 +1,36 @@
-# Metodik
+# Methodology
 
-Testningen följer ett förenklat men realistiskt pentest-flöde. Varje
-sårbarhet dokumenteras med samma struktur i `findings/` så rapporten blir
-konsekvent.
+Testing follows a simplified but realistic penetration-test flow. Each
+vulnerability is documented with the same structure in `findings/` so the
+report stays consistent.
 
-## Faser
-1. **Recon / kartläggning** — gå igenom alla sidor, formulär, URL-parametrar
-   och API-anrop. Notera var användarinput tas emot (det är attackytan).
-2. **Identifiering** — ställ hypoteser: "det här fältet går kanske direkt in
-   i en SQL-query", "det här id:t i URL:en kanske inte behörighetskontrolleras".
-3. **Exploatering** — bekräfta hypotesen med ett konkret angrepp.
-4. **Verifiering** — visa påverkan (impact): vad kan en angripare faktiskt
-   komma åt eller göra?
-5. **Åtgärd (remediation)** — fixa hålet i koden och visa att angreppet
-   inte längre fungerar.
-6. **Dokumentation** — skriv upp det hela medan det är färskt.
+## Phases
+1. **Recon / mapping** — go through every page, form, URL parameter and API
+   call. Note where user input is accepted (that is the attack surface).
+2. **Identification** — form hypotheses: "this field may go straight into a
+   SQL query", "this id in the URL may not be authorization-checked".
+3. **Exploitation** — confirm the hypothesis with a concrete attack.
+4. **Verification** — show the impact: what can an attacker actually access
+   or do?
+5. **Remediation** — fix the flaw in the code and show the attack no longer
+   works.
+6. **Documentation** — write it all up while it is fresh.
 
-## Verktyg
-- **Burp Suite Community** eller **OWASP ZAP** — avlyssnande proxy mellan
-  webbläsare och app. Används för att läsa och manipulera requests.
-- **Webbläsarens DevTools** — nätverksflik, cookies, konsol.
-- **curl** — för att snabbt återskapa en request från terminalen.
+## Tooling
+- **Burp Suite Community** or **OWASP ZAP** — intercepting proxy between the
+  browser and the app. Used to read and manipulate requests.
+- **Browser DevTools** — network tab, cookies, console.
+- **curl** — to quickly reproduce a request from the terminal.
 
-## Allvarlighetsgrad (severity)
-Varje fynd klassas för att spegla en riktig rapport:
+## Severity
+Each finding is rated to mirror a real report:
 
-| Grad     | Innebörd (ungefär)                                   |
+| Rating   | Meaning (roughly)                                    |
 |----------|------------------------------------------------------|
-| Kritisk  | Full kompromettering / åtkomst till all data         |
-| Hög      | Åtkomst till annan användares data eller konto        |
-| Medel    | Begränsad exponering, kräver viss förutsättning       |
-| Låg      | Informationsläckage med liten direkt påverkan         |
+| Critical | Full compromise / access to all data                 |
+| High     | Access to another user's data or account             |
+| Medium   | Limited exposure, requires some precondition         |
+| Low      | Information leakage with little direct impact         |
 
-## Writeup-mall
-Se `findings/_TEMPLATE.md`.
+## Write-up template
+See `findings/_TEMPLATE.md`.

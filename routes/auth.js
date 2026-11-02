@@ -1,18 +1,20 @@
 // routes/auth.js
 // ---------------------------------------------------------------------------
-// Registrering, inloggning, utloggning.
-// SÄKER baslinje:
-//   - Parametriserade queries (?) -> ingen SQL-injection.
-//   - bcrypt.compare -> inga lösenord i klartext, konstant-tids jämförelse.
-//   - session.regenerate vid login -> motverkar session fixation.
-//   - Generiskt felmeddelande -> avslöjar inte om användarnamnet finns.
+// Registration, login, logout.
+//
+// A03 (SQL Injection) has been remediated: the login uses a parameterised
+// query, so user input is always treated as DATA, never as code.
+//
+// Note: passwords are currently stored and compared in PLAINTEXT. That is an
+// open, intentional weakness tracked as A02 (Cryptographic Failures); bcrypt
+// hashing is reintroduced in that lesson.
 // ---------------------------------------------------------------------------
 const express = require('express');
 const db = require('../db/db');
 
 const router = express.Router();
 
-// --- Registrering ---------------------------------------------------------
+// --- Registration ---------------------------------------------------------
 router.get('/register', (req, res) => {
   res.render('register', { error: null });
 });
@@ -22,7 +24,7 @@ router.post('/register', (req, res) => {
 
   if (!username || !password || password.length < 6) {
     return res.render('register', {
-      error: 'Ange användarnamn och ett lösenord på minst 6 tecken.',
+      error: 'Enter a username and a password of at least 6 characters.',
     });
   }
 
@@ -30,18 +32,18 @@ router.post('/register', (req, res) => {
     .prepare('SELECT id FROM users WHERE username = ?')
     .get(username);
   if (existing) {
-    return res.render('register', { error: 'Användarnamnet är upptaget.' });
+    return res.render('register', { error: 'That username is taken.' });
   }
 
-  // LABB: lösenordet lagras i klartext (osäkert med flit — se A02 senare).
-  // INSERT är fortfarande parametriserad; injektionspunkten i den här
-  // lektionen är inloggningen nedan, inte registreringen.
+  // LAB: the password is stored in plaintext (insecure on purpose — see A02).
+  // The INSERT is still parameterised; the injection point in that lesson was
+  // the login below, not registration.
   const info = db
     .prepare('INSERT INTO users (username, password) VALUES (?, ?)')
     .run(username, password);
 
   req.session.regenerate((err) => {
-    if (err) return res.render('register', { error: 'Något gick fel.' });
+    if (err) return res.render('register', { error: 'Something went wrong.' });
     req.session.userId = Number(info.lastInsertRowid);
     req.session.username = username;
     req.session.role = 'user';
@@ -49,8 +51,7 @@ router.post('/register', (req, res) => {
   });
 });
 
-
-// --- Inloggning -----------------------------------------------------------
+// --- Login ----------------------------------------------------------------
 router.get('/login', (req, res) => {
   res.render('login', { error: null });
 });
@@ -58,19 +59,21 @@ router.get('/login', (req, res) => {
 router.post('/login', (req, res) => {
   const { username, password } = req.body;
 
-  // 🟢 SÄKER: parametriserad query — input binds som DATA, aldrig som kod.
+  // SECURE (fix for OWASP A03): parameterised query.
+  // '?' is a placeholder — the user's input is bound as DATA and can never
+  // become part of the SQL code. That is the whole fix against SQL injection.
   const user = db
     .prepare('SELECT * FROM users WHERE username = ?')
     .get(username);
 
-  // Lösenordet jämförs separat som text. (Labbet lagrar klartext just nu;
-  // riktig bcrypt-hashning återinför vi i A02-lektionen.)
+  // The password is compared separately as text. (The lab stores plaintext
+  // for now; real bcrypt hashing is reintroduced in the A02 lesson.)
   if (!user || user.password !== password) {
-    return res.render('login', { error: 'Fel användarnamn eller lösenord.' });
+    return res.render('login', { error: 'Wrong username or password.' });
   }
 
   req.session.regenerate((err) => {
-    if (err) return res.render('login', { error: 'Något gick fel.' });
+    if (err) return res.render('login', { error: 'Something went wrong.' });
     req.session.userId = user.id;
     req.session.username = user.username;
     req.session.role = user.role;
@@ -78,7 +81,7 @@ router.post('/login', (req, res) => {
   });
 });
 
-// --- Utloggning -----------------------------------------------------------
+// --- Logout ---------------------------------------------------------------
 router.post('/logout', (req, res) => {
   req.session.destroy(() => {
     res.clearCookie('connect.sid');

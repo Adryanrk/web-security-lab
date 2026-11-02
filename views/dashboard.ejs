@@ -1,9 +1,9 @@
 <%- include('partials/header') %>
-<h1>Min dashboard</h1>
-<p class="muted">Dina sparade items.</p>
+<h1>My dashboard</h1>
+<p class="muted">Your saved items.</p>
 
 <% if (items.length === 0) { %>
-  <div class="card"><p>Du har inga items ännu.</p></div>
+  <div class="card"><p>You have no items yet.</p></div>
 <% } else { %>
   <div class="list">
     <% items.forEach(function(item) { %>

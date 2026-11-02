@@ -1,31 +1,31 @@
-# [NN] — <Sårbarhetens namn> (OWASP <Axx>)
+# [NN] — <Vulnerability name> (OWASP <Axx>)
 
-**Allvarlighetsgrad:** Kritisk / Hög / Medel / Låg
-**Plats:** <fil och rad, eller endpoint, t.ex. `routes/auth.js` – POST /login>
+**Severity:** Critical / High / Medium / Low
+**Location:** <file and line, or endpoint, e.g. `routes/auth.js` – POST /login>
 
-## Sammanfattning
-En till två meningar: vad är hålet och varför spelar det roll?
+## Summary
+One or two sentences: what is the flaw and why does it matter?
 
-## Sårbar kod
+## Vulnerable code
 ```js
-// klistra in det exakta kodavsnittet som är sårbart
+// paste the exact vulnerable snippet
 ```
 
-## Så utnyttjas det (steg för steg)
+## How it is exploited (step by step)
 1. ...
 2. ...
 3. ...
 
-*(Infoga skärmdump/bevis här.)*
+*(Insert screenshot/evidence here.)*
 
-## Påverkan (impact)
-Vad kan en angripare konkret göra? Vilken data eller funktion exponeras?
+## Impact
+What can an attacker concretely do? What data or functionality is exposed?
 
-## Åtgärd (remediation)
+## Remediation
 ```js
-// den rättade koden
+// the fixed code
 ```
-Förklara kort *varför* fixen fungerar.
+Briefly explain *why* the fix works.
 
-## Referens
-Länk till OWASP-sidan för kategorin.
+## Reference
+Link to the OWASP page for the category.

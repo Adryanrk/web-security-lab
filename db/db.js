@@ -1,9 +1,9 @@
 // db/db.js
 // ---------------------------------------------------------------------------
-// Öppnar SQLite-databasen och skapar/seedar den vid första körning.
-// Vi använder Nodes INBYGGDA SQLite (node:sqlite) -> inget byggsteg, inga
-// extra paket. API:t (prepare/get/all/run) är i praktiken identiskt med
-// better-sqlite3, så koden ser likadan ut.
+// Opens the SQLite database and creates/seeds it on first run.
+// We use Node's BUILT-IN SQLite (node:sqlite) -> no build step, no extra
+// packages. The API (prepare/get/all/run) is effectively identical to
+// better-sqlite3, so the code reads the same.
 // ---------------------------------------------------------------------------
 const path = require('path');
 const { DatabaseSync } = require('node:sqlite');
@@ -11,19 +11,19 @@ const { DatabaseSync } = require('node:sqlite');
 const DB_PATH = path.join(__dirname, 'lab.db');
 const db = new DatabaseSync(DB_PATH);
 
-// WAL ger bättre samtidighet; inte säkerhetsrelaterat, bara god praxis.
+// WAL improves concurrency; not security-related, just good practice.
 db.exec('PRAGMA journal_mode = WAL');
 
 // --- Schema ---------------------------------------------------------------
-// LABB: i den sårbara versionen lagras lösenord i KLARTEXT (osäkert med flit).
-// Det hör ihop med den kommande A02-lektionen (Cryptographic Failures) och
-// gör också SQLi-demon i inloggningen tydlig. Den säkra baslinjen använde
-// bcrypt-hash — den koden återkommer i åtgärdsförslaget för A02.
+// LAB: in the vulnerable version passwords are stored in PLAINTEXT (insecure
+// on purpose). This ties into the upcoming A02 lesson (Cryptographic
+// Failures) and also makes the SQLi login demo clear. The secure baseline
+// used a bcrypt hash — that code returns in the A02 remediation.
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     username   TEXT UNIQUE NOT NULL,
-    password   TEXT NOT NULL,            -- LABB: klartext (osäkert med flit)
+    password   TEXT NOT NULL,            -- LAB: plaintext (insecure on purpose)
     role       TEXT NOT NULL DEFAULT 'user',
     bio        TEXT DEFAULT '',
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -49,7 +49,7 @@ db.exec(`
   );
 `);
 
-// --- Seed (körs bara om tabellen är tom) ----------------------------------
+// --- Seed (only runs if the table is empty) -------------------------------
 const userCount = db.prepare('SELECT COUNT(*) AS n FROM users').get().n;
 
 if (userCount === 0) {
@@ -63,22 +63,22 @@ if (userCount === 0) {
     'INSERT INTO comments (item_id, author_id, content) VALUES (?, ?, ?)'
   );
 
-  // Testkonton. Lösenorden är kända med flit — detta är ett labb.
-  // Lagras i KLARTEXT (se kommentaren vid schemat ovan).
+  // Test accounts. Passwords are known on purpose — this is a lab.
+  // Stored in PLAINTEXT (see the schema comment above).
   const adminId = insertUser.run('admin', 'Admin!2026', 'admin',
-    'Administratörskonto för portalen.').lastInsertRowid;
+    'Administrator account for the portal.').lastInsertRowid;
   const aliceId = insertUser.run('alice', 'alice123', 'user',
-    'Hej, jag heter Alice.').lastInsertRowid;
+    "Hi, I'm Alice.").lastInsertRowid;
   const bobId = insertUser.run('bob', 'bob123', 'user',
-    'Bob här. Gillar kaffe.').lastInsertRowid;
+    'Bob here. I like coffee.').lastInsertRowid;
 
-  // Lite innehåll per användare, så IDOR m.m. har något att visa senare.
-  const a1 = insertItem.run(aliceId, 'Alices privata anteckning',
-    'Hemlig text som bara Alice ska kunna se.').lastInsertRowid;
-  insertItem.run(bobId, 'Bobs inköpslista', 'Mjölk, bönor, kaffe.');
-  insertItem.run(adminId, 'Driftnotis', 'Internt: serverunderhåll söndag.');
+  // Some content per user so IDOR etc. has something to show later.
+  const a1 = insertItem.run(aliceId, "Alice's private note",
+    'Secret text only Alice should be able to see.').lastInsertRowid;
+  insertItem.run(bobId, "Bob's shopping list", 'Milk, beans, coffee.');
+  insertItem.run(adminId, 'Ops notice', 'Internal: server maintenance on Sunday.');
 
-  insertComment.run(a1, bobId, 'Snygg anteckning!');
+  insertComment.run(a1, bobId, 'Nice note!');
 }
 
 module.exports = db;

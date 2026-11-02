@@ -1,80 +1,86 @@
-# 01 — SQL Injection i inloggningen (OWASP A03)
+# 01 — SQL Injection in the login (OWASP A03)
 
-**Allvarlighetsgrad:** Kritisk
-**Plats:** `routes/auth.js` — `POST /login`
+**Severity:** Critical
+**Location:** `routes/auth.js` — `POST /login`
 
-## Sammanfattning
-Inloggningsformuläret bygger sin SQL-fråga genom att konkatenera användarens
-input direkt in i kommandosträngen. En angripare kan därför injicera SQL-syntax
-och kringgå autentiseringen helt — logga in som vilken användare som helst,
-inklusive admin, utan att känna till något lösenord.
+## Summary
+The login form builds its SQL query by concatenating user input directly into
+the command string. An attacker can therefore inject SQL syntax and bypass
+authentication entirely — logging in as any user, including admin, without
+knowing any password.
 
-## Sårbar kod
+## Vulnerable code
 ```js
 const sql =
   "SELECT * FROM users WHERE username = '" + username +
   "' AND password = '" + password + "'";
 const user = db.prepare(sql).get();
-if (user) { /* inloggad */ }
+if (user) { /* logged in */ }
 ```
-Problemet: databasen kan inte skilja på kod (skriven av utvecklaren) och data
-(skriven av användaren). Allt som skrivs i fälten blir en del av SQL-satsen.
+The problem: the database cannot tell code (written by the developer) from
+data (written by the user). Anything typed into the fields becomes part of the
+SQL statement.
 
-## Så utnyttjas det (steg för steg)
-1. Gå till `/login`.
-2. Fyll i:
-   - **Användarnamn:** `' OR 1=1 -- `
-   - **Lösenord:** valfritt
-3. Den sammansatta frågan blir:
+## How it is exploited (step by step)
+1. Go to `/login`.
+2. Enter:
+   - **Username:** `' OR 1=1 -- `
+   - **Password:** anything
+3. The resulting query becomes:
    ```sql
    SELECT * FROM users WHERE username = '' OR 1=1 --' AND password = '...'
    ```
-   - `' ` avslutar användarnamnssträngen i förtid
-   - `OR 1=1` är alltid sant → villkoret matchar alla rader
-   - `--` kommenterar bort resten av frågan (lösenordskontrollen)
-4. Första raden i tabellen (admin) returneras → inloggad som **admin** utan lösenord.
+   - `' ` closes the username string early
+   - `OR 1=1` is always true → the condition matches every row
+   - `--` comments out the rest of the query (the password check)
+4. The first row in the table (admin) is returned → logged in as **admin**
+   without a password.
 
-Rikta mot en specifik användare:
-- Användarnamn `admin' -- ` → inloggad som admin
-- Användarnamn `alice' -- ` → inloggad som alice
+Target a specific user:
+- Username `admin' -- ` → logged in as admin
+- Username `alice' -- ` → logged in as alice
 
-Bekräfta att injektion är möjlig (felbaserad indikator):
-- Användarnamn `'` (ensamt citattecken) → appen returnerar ett SQL-syntaxfel,
-  vilket avslöjar att input tolkas som kod.
+Confirm injection is possible (error-based indicator):
+- Username `'` (a single quote) → the app returns a SQL syntax error, which
+  reveals that input is being interpreted as code.
 
-*(Infoga skärmdump: inloggad som admin efter payloaden.)*
+*(Insert screenshot: logged in as admin after the payload.)*
 
-## Påverkan (impact)
-- Fullständig autentiseringsbypass — åtkomst till vilket konto som helst.
-- Åtkomst till administratörskontot → all funktionalitet och data i portalen.
-- Samma klass av fel kan ofta utökas till att läsa ut hela databasen
-  (användarnamn, lösenord) via UNION- eller felbaserad injektion.
+## Impact
+- Complete authentication bypass — access to any account.
+- Access to the administrator account → all functionality and data in the portal.
+- The same class of flaw can often be extended to dump the whole database
+  (usernames, passwords) via UNION- or error-based injection.
 
-Därför klassas detta som **Kritiskt**.
+Rated **Critical**.
 
-## Not om denna miljö
-Drivrutinen (`node:sqlite`) kör bara en sats per `prepare`, så s.k. "stacked
-queries" (`'; DROP TABLE users; --`) körs inte här. Injektion *inom* den
-enskilda SELECT-satsen (bypass, UNION) fungerar däremot fullt ut, vilket är
-det vanligaste i praktiken.
+## Note on this environment
+The driver (`node:sqlite`) only runs a single statement per `prepare`, so
+"stacked queries" (`'; DROP TABLE users; --`) do not execute here. Injection
+*within* the single SELECT statement (bypass, UNION) works fully, which is the
+most common case in practice.
 
-## Åtgärd (remediation)
-Använd en **parametriserad query** (prepared statement med platshållare):
+## Remediation
+Use a **parameterised query** (prepared statement with a placeholder):
 ```js
 const user = db
   .prepare('SELECT * FROM users WHERE username = ?')
   .get(username);
-if (!user || !bcrypt.compareSync(password || '', user.password)) {
-  return res.render('login', { error: 'Fel användarnamn eller lösenord.' });
+if (!user || user.password !== password) {
+  return res.render('login', { error: 'Wrong username or password.' });
 }
 ```
-Varför det fungerar: med `?` skickas input alltid som ett **värde**, aldrig som
-kod. Databasen kompilerar frågans struktur först och binder sedan in datan —
-det går helt enkelt inte att "bryta ut" ur värdet. Lösenordet verifieras
-dessutom separat med bcrypt istället för i SQL-satsen.
+Why it works: with `?`, input is always sent as a **value**, never as code.
+The database compiles the query structure first and then binds the data — there
+is simply no way to "break out" of the value. The password is also checked
+separately rather than inside the SQL statement.
 
-Kompletterande försvar: validera indata, kör databasanvändaren med minsta
-möjliga rättigheter, och läck aldrig råa SQL-felmeddelanden till användaren.
+> Follow-up: passwords are still stored and compared in plaintext here. That is
+> tracked separately as A02 (Cryptographic Failures), where bcrypt hashing is
+> reintroduced.
 
-## Referens
+Additional defenses: validate input, run the database account with least
+privilege, and never leak raw SQL error messages to the user.
+
+## Reference
 OWASP A03:2021 — Injection · https://owasp.org/Top10/A03_2021-Injection/
