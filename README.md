@@ -52,7 +52,7 @@ Reset the database at any time with `npm run reset-db`.
 Checked off as each write-up is completed in `docs/findings/`.
 
 - [x] A01 — Broken Access Control (IDOR on `/items/:id`) → [write-up](docs/findings/02-idor.md)
-- [ ] A02 — Cryptographic Failures (weak / missing password hashing)
+- [x] A02 — Cryptographic Failures (plaintext passwords → bcrypt) → [write-up](docs/findings/04-plaintext-passwords.md)
 - [x] A03 — Injection (SQL injection in the login) → [write-up](docs/findings/01-sql-injection.md)
 - [x] A03 — Stored XSS (comments) → [write-up](docs/findings/03-xss.md)
 - [ ] A05 — Security Misconfiguration (leaking error messages)

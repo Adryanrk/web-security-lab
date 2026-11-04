@@ -2,14 +2,16 @@
 // ---------------------------------------------------------------------------
 // Registration, login, logout.
 //
-// A03 (SQL Injection) has been remediated: the login uses a parameterised
-// query, so user input is always treated as DATA, never as code.
+// A03 (SQL Injection): fixed — the login uses a parameterised query, so user
+// input is always treated as DATA, never as code.
 //
-// Note: passwords are currently stored and compared in PLAINTEXT. That is an
-// open, intentional weakness tracked as A02 (Cryptographic Failures); bcrypt
-// hashing is reintroduced in that lesson.
+// A02 (Cryptographic Failures): fixed — passwords are hashed with bcrypt.
+// We never store or compare the plaintext password. bcrypt salts each hash
+// automatically and is deliberately slow, which resists brute-forcing a
+// stolen database.
 // ---------------------------------------------------------------------------
 const express = require('express');
+const bcrypt = require('bcryptjs');
 const db = require('../db/db');
 
 const router = express.Router();
@@ -35,12 +37,12 @@ router.post('/register', (req, res) => {
     return res.render('register', { error: 'That username is taken.' });
   }
 
-  // LAB: the password is stored in plaintext (insecure on purpose — see A02).
-  // The INSERT is still parameterised; the injection point in that lesson was
-  // the login below, not registration.
+  // Hash the password with bcrypt before storing it. The number (10) is the
+  // cost/work factor — higher is slower and harder to brute-force.
+  const hash = bcrypt.hashSync(password, 10);
   const info = db
     .prepare('INSERT INTO users (username, password) VALUES (?, ?)')
-    .run(username, password);
+    .run(username, hash);
 
   req.session.regenerate((err) => {
     if (err) return res.render('register', { error: 'Something went wrong.' });
@@ -59,16 +61,16 @@ router.get('/login', (req, res) => {
 router.post('/login', (req, res) => {
   const { username, password } = req.body;
 
-  // SECURE (fix for OWASP A03): parameterised query.
-  // '?' is a placeholder — the user's input is bound as DATA and can never
-  // become part of the SQL code. That is the whole fix against SQL injection.
+  // SECURE (A03 fix): parameterised query — input is bound as DATA, never code.
   const user = db
     .prepare('SELECT * FROM users WHERE username = ?')
     .get(username);
 
-  // The password is compared separately as text. (The lab stores plaintext
-  // for now; real bcrypt hashing is reintroduced in the A02 lesson.)
-  if (!user || user.password !== password) {
+  // SECURE (A02 fix): compare the submitted password against the stored bcrypt
+  // hash. bcrypt.compareSync hashes the input with the stored salt and checks
+  // for a match — the plaintext is never stored or revealed. The same generic
+  // message for "no such user" and "wrong password" avoids leaking which one.
+  if (!user || !bcrypt.compareSync(password || '', user.password)) {
     return res.render('login', { error: 'Wrong username or password.' });
   }
 

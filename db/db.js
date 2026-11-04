@@ -7,6 +7,7 @@
 // ---------------------------------------------------------------------------
 const path = require('path');
 const { DatabaseSync } = require('node:sqlite');
+const bcrypt = require('bcryptjs');
 
 const DB_PATH = path.join(__dirname, 'lab.db');
 const db = new DatabaseSync(DB_PATH);
@@ -15,15 +16,12 @@ const db = new DatabaseSync(DB_PATH);
 db.exec('PRAGMA journal_mode = WAL');
 
 // --- Schema ---------------------------------------------------------------
-// LAB: in the vulnerable version passwords are stored in PLAINTEXT (insecure
-// on purpose). This ties into the upcoming A02 lesson (Cryptographic
-// Failures) and also makes the SQLi login demo clear. The secure baseline
-// used a bcrypt hash — that code returns in the A02 remediation.
+// Passwords are stored as a bcrypt HASH, never in plaintext (A02 fix).
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     username   TEXT UNIQUE NOT NULL,
-    password   TEXT NOT NULL,            -- LAB: plaintext (insecure on purpose)
+    password   TEXT NOT NULL,            -- bcrypt hash
     role       TEXT NOT NULL DEFAULT 'user',
     bio        TEXT DEFAULT '',
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -63,16 +61,18 @@ if (userCount === 0) {
     'INSERT INTO comments (item_id, author_id, content) VALUES (?, ?, ?)'
   );
 
-  // Test accounts. Passwords are known on purpose — this is a lab.
-  // Stored in PLAINTEXT (see the schema comment above).
-  const adminId = insertUser.run('admin', 'Admin!2026', 'admin',
+  // Test accounts. Passwords are known on purpose (this is a lab) but stored
+  // as bcrypt hashes — the plaintext never touches the database.
+  const hash = (pw) => bcrypt.hashSync(pw, 10);
+
+  const adminId = insertUser.run('admin', hash('Admin!2026'), 'admin',
     'Administrator account for the portal.').lastInsertRowid;
-  const aliceId = insertUser.run('alice', 'alice123', 'user',
+  const aliceId = insertUser.run('alice', hash('alice123'), 'user',
     "Hi, I'm Alice.").lastInsertRowid;
-  const bobId = insertUser.run('bob', 'bob123', 'user',
+  const bobId = insertUser.run('bob', hash('bob123'), 'user',
     'Bob here. I like coffee.').lastInsertRowid;
 
-  // Some content per user so IDOR etc. has something to show later.
+  // Some content per user so IDOR etc. has something to show.
   const a1 = insertItem.run(aliceId, "Alice's private note",
     'Secret text only Alice should be able to see.').lastInsertRowid;
   insertItem.run(bobId, "Bob's shopping list", 'Milk, beans, coffee.');
