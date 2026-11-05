@@ -55,7 +55,7 @@ Checked off as each write-up is completed in `docs/findings/`.
 - [x] A02 — Cryptographic Failures (plaintext passwords → bcrypt) → [write-up](docs/findings/04-plaintext-passwords.md)
 - [x] A03 — Injection (SQL injection in the login) → [write-up](docs/findings/01-sql-injection.md)
 - [x] A03 — Stored XSS (comments) → [write-up](docs/findings/03-xss.md)
-- [ ] A05 — Security Misconfiguration (leaking error messages)
+- [x] A05 — Security Misconfiguration (leaking error messages) → [write-up](docs/findings/05-security-misconfiguration.md)
 - [ ] A07 — Identification & Authentication Failures (no rate limiting)
 
 ## Project structure

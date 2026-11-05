@@ -44,14 +44,15 @@ app.use(authRoutes);
 app.use(itemRoutes);
 app.use(profileRoutes);
 
+// DEMO route for the A05 lesson: triggers an unhandled error on purpose.
+// It stands in for any real bug in the app that throws at runtime.
+
 // 404.
 app.use((req, res) => res.status(404).render('404'));
 
-// Generic error handler: NEVER leak a stack trace to the user in production.
-// (A later lesson, A05, intentionally does the opposite to show info leakage.)
 app.use((err, req, res, next) => {
-  console.error(err); // logged server-side
-  res.status(500).render('500');
+  console.error(err);              // logga detaljerna BARA på servern
+  res.status(500).render('500');   // visa användaren en generisk sida
 });
 
 app.listen(PORT, () => {
