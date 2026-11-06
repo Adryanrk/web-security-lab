@@ -11,6 +11,8 @@ introduce classic vulnerabilities (OWASP Top 10), exploit them, and then remedia
 them — each one documented with a short write-up, in the style of a real penetration
 test report.
 
+**📄 [Full penetration test report (PDF)](report/SecureFolio-Pentest-Report.pdf)** — executive summary, methodology, severity overview, and all six findings with evidence and remediation.
+
 ## Skills demonstrated
 - Identifying and exploiting common web vulnerabilities (OWASP Top 10)
 - Writing secure code and understanding **why** a fix works, not just that it does
