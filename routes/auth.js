@@ -2,19 +2,28 @@
 // ---------------------------------------------------------------------------
 // Registration, login, logout.
 //
-// A03 (SQL Injection): fixed — the login uses a parameterised query, so user
-// input is always treated as DATA, never as code.
-//
+// A03 (SQL Injection): fixed — the login uses a parameterised query.
 // A02 (Cryptographic Failures): fixed — passwords are hashed with bcrypt.
-// We never store or compare the plaintext password. bcrypt salts each hash
-// automatically and is deliberately slow, which resists brute-forcing a
-// stolen database.
+// A07 (Authentication Failures): fixed — the login is rate limited, so an
+// attacker can no longer make unlimited password guesses (brute force).
 // ---------------------------------------------------------------------------
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const rateLimit = require('express-rate-limit');
 const db = require('../db/db');
 
 const router = express.Router();
+
+// Rate limiter for the login: at most 5 attempts per IP per 15 minutes.
+// Further attempts get HTTP 429 (Too Many Requests) until the window resets.
+// This is the baseline defence against brute force and password spraying.
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 5,                 // max 5 requests per window per IP
+  message: 'Too many login attempts from this IP. Please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // --- Registration ---------------------------------------------------------
 router.get('/register', (req, res) => {
@@ -58,7 +67,9 @@ router.get('/login', (req, res) => {
   res.render('login', { error: null });
 });
 
-router.post('/login', (req, res) => {
+// loginLimiter runs before the handler — once the limit is hit, requests are
+// rejected with 429 before any password check happens.
+router.post('/login', loginLimiter, (req, res) => {
   const { username, password } = req.body;
 
   // SECURE (A03 fix): parameterised query — input is bound as DATA, never code.
@@ -66,9 +77,7 @@ router.post('/login', (req, res) => {
     .prepare('SELECT * FROM users WHERE username = ?')
     .get(username);
 
-  // SECURE (A02 fix): compare the submitted password against the stored bcrypt
-  // hash. bcrypt.compareSync hashes the input with the stored salt and checks
-  // for a match — the plaintext is never stored or revealed. The same generic
+  // SECURE (A02 fix): compare against the stored bcrypt hash. The same generic
   // message for "no such user" and "wrong password" avoids leaking which one.
   if (!user || !bcrypt.compareSync(password || '', user.password)) {
     return res.render('login', { error: 'Wrong username or password.' });
